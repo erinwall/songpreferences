@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np 
 
 path = 'https://github.com/erinwall/songpreferences/raw/main/final_data_summary.csv'
+#successful data summary csv
 df = pd.read_csv(path)
 
 by_bird_by_date = df.groupby(['bird_ID', 'date'])['bird_played'].apply(list).reset_index()
