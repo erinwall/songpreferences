@@ -1,0 +1,38 @@
+combined_csvs_check doesn't work because some section of the data is shifted right by one column
+includes:
+erin_feb2021_backup2.csv
+may2018pulls_emw.csv
+PairExperimentStringpullBatch2Sept11.csv
+stringpull2019_EMWjuly26_Ani.csv
+stringpullbackup_may2019.csv
+stringpulldata6.csv
+stringpullsoctober2018_EMW_2.csv
+
+same files as in combined_csv_files_cleaned which previously worked so will use that
+ but with new songsplayed_sorted_forcode because I edited that when I found some FD song files listed incorrectly as UD
+
+ran combined_csv_files_junelyrebirdtaylor_cleaned
+error at after running the loop that starts at line 84 in the R code
+ran lapply (data_pass, class) and lapply (cleaned_subset, class) and found that all columns as characters (Except for count)
+
+ran combined_csv_files_cleaned
+no error
+ran lapply (data_pass, class) and lapply (cleaned_subset, class) and found key_pecked as integer
+2 instances of "more than two tests"
+
+on combined_csv_files_junelyrebirdtaylor_cleaned, 
+ran this after line 15:
+data$key_pecked <- as.numeric(data$key_pecked)
+no warnings, worked
+5 instances of "more than two tests
+this time rest of code "worked" obv need to verify but no errors
+
+will keep combined_csvs_files_cleaned and combined_csv_files_junelyrebirdtaylor_cleaned
+ but will now make a cleaned_merged_csvs that will merge these two csvs
+
+ran cleaned_merged_csvs
+and
+data$key_pecked <- as.numeric(data$key_pecked)
+5 instances of more than two tests
+completed R code successfully
+upload to github
