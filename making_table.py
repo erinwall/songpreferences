@@ -111,59 +111,6 @@ def make_test_lists(data):
 
 
 
-#-----------------------      New Code    ------------------------------------#
-# --------------------------------------------------------------------------- # 
-'''
-test_type_freq = {} # keeps track of number of tests for each bird 
-for test_type in all_tests:
-  test_type_freq[test_type] = 0
-
-test_counts = {} # the final table as a nested dictionary 
-for ID in df['bird_ID'].unique():
-  test_counts[ID] = 0
-
-all_tests = set(all_tests)
-
-current_bird = None
-for i in by_bird_by_date.index:
-  bird = by_bird_by_date['bird_ID'][i]
-
-  # check if we are on a different bird yet
-  if bird == current_bird:  
-    # if we are not, keep incrementing the counts for each test type 
-    tests_for_day = by_bird_by_date['test type'][i]
-    if tests_for_day != None:
-      if type(tests_for_day) == list:
-        for element in tests_for_day:
-          test_type_freq[element] += 1
-      else:
-        test_type_freq[tests_for_day] += 1
-
-  # if we are, we need to reset the dictionary and store the values 
-  else:
-
-    # store values from current dictionary 
-    test_counts[current_bird] = test_type_freq
-    # make new dictionary 
-    test_type_freq = {} # keeps track of number of tests for each bird 
-    for test_type in all_tests:
-      test_type_freq[test_type] = 0
-    # set current bird to this bird 
-    current_bird = by_bird_by_date['bird_ID'][i]
-
-# this gives something like a table, but the numbers are suspect so will need to debug 
-
-test_counts  = pd.DataFrame.from_dict(test_counts)
-test_counts = test_counts.transpose()
-# print("Test types\t\t\t\t\t\t\t\t\t Bird IDs\n")
-
-# print(test_counts)
-
-# test_counts.to_csv('csvification.csv')
-'''
-
-
-
 def make_testcounts_table(data, df):
   test_type_freq = {} # keeps track of number of tests for each bird -- each bird will have a different value for this 
 
@@ -211,6 +158,8 @@ def make_testcounts_table(data, df):
   return test_counts
 
 
+
+# main method -- this is the part that actually reads in and processes the data 
 def main():
   path = 'https://github.com/erinwall/songpreferences/raw/main/final_data_summary.csv'
   df = pd.read_csv(path)
@@ -227,6 +176,6 @@ def main():
 
 
 
-
+# run main function 
 if __name__ == '__main__':
   main()
