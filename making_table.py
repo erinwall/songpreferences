@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd 
-
+import copy 
 
 # reference lists 
 listA = ['g32b89_UD', 'pi183y24_UD', 'r16y36', 'bl43p196_UD']
@@ -23,6 +23,14 @@ listQ = ['b85w66', 'pu54bl21']
 listU = ['p3y3', 'pu46w46']
 all_tests = ['con vs het', 'fam vs unfam', 'familiar FD vs UD', 'unfamiliar FD vs UD - bkor',   'unfamiliar FD vs UD - blk17',   'unfamiliar FD vs UD - yelred',   'unfamiliar FD vs UD - yelgrn',  'pair2', 'pair3', 'pair4', 'tutor vs mate', 'pair1', 'pair5', 'misfit']
 
+def check_prefix(str1, str2):
+  prefix1 = str1.split('_')[0]
+  prefix2 = str2.split('_')[0]
+  if prefix1 == prefix2:
+    return True
+  else:
+    return False
+
 
 # data processing functions
 def determine_test_type(song_pair):
@@ -34,7 +42,10 @@ def determine_test_type(song_pair):
   elif (song_pair[0] in listC and song_pair[1] in listC):
     test_type = 'fam vs unfam'
   elif ((song_pair[0] in listC and song_pair[1] in listD) or (song_pair[1] in listC and song_pair[0] in listD)):
-    test_type = 'familiar FD vs UD'
+    if check_prefix(song_pair[0], song_pair[1]):
+      test_type = 'familiar FD vs UD'
+    else:
+      test_type = 'misfit'
   elif ((song_pair[0] in listE and song_pair[1] in listF) or (song_pair[1] in listE and song_pair[0] in listF)):
      test_type = 'unfamiliar FD vs UD - bkor' 
   elif ((song_pair[0] in listG and song_pair[1] in listH) or (song_pair[1] in listG and song_pair[0] in listH)):
@@ -119,61 +130,99 @@ def make_testcounts_table(data, df):
   for test_type in all_tests_set:
     test_type_freq[test_type] = 0
 
-  test_counts = {} # the final table as a nested dictionary 
+  test_counts = dict({}) # the final table as a nested dictionary 
   
   for ID in df['bird_ID'].unique(): # might want to avoid referencing df here
-    test_counts[ID] = 0
+    for test_type in all_tests_set:
+      test_counts[ID] = test_type_freq.copy()
 
-  
-  current_bird = None
+  current_bird = df['bird_ID'][0]
   for i in data.index:
     bird = data['bird_ID'][i]
-
     # check if we are on a different bird yet
     if bird == current_bird:  
       # if we are not, keep incrementing the counts for each test type 
       tests_for_day = data['test type'][i]
+     
       if tests_for_day != None:
         if type(tests_for_day) == list:
           for element in tests_for_day:
             test_type_freq[element] += 1
         else:
           test_type_freq[tests_for_day] += 1
-    # if we are, we need to reset the dictionary and store the values 
-    else:
-      # store values from current dictionary 
-      test_counts[current_bird] = test_type_freq
-      # make new dictionary 
 
-      test_type_freq = {} # keeps track of number of tests for each bird 
+    # if we are, we need to reset the dictionary and store the values 
+    else: 
+      test_counts[current_bird] = test_type_freq.copy()
+
+      if current_bird == 'bl40p81':
+
+      # make new dictionary 
+      test_type_freq = dict({}) # keeps track of number of tests for each bird 
       for test_type in all_tests_set:
         test_type_freq[test_type] = 0
+
       # set current bird to this bird 
       current_bird = data['bird_ID'][i]
+      tests_for_day = data['test type'][i]
+      # count up tests for this bird before moving onto next iteration of loop 
+      if tests_for_day != None:
+        if type(tests_for_day) == list:
+          for element in tests_for_day:
+            test_type_freq[element] += 1
+        else:
+          test_type_freq[tests_for_day] += 1
 
   # this gives something like a table, but the numbers are suspect so will need to debug 
 
   test_counts  = pd.DataFrame.from_dict(test_counts)
+ 
   test_counts = test_counts.transpose()
+  
   return test_counts
 
 
 
 # main method -- this is the part that actually reads in and processes the data 
 def main():
-  path = 'https://github.com/erinwall/songpreferences/raw/main/final_data_summary.csv'
+  # path = 'https://github.com/erinwall/songpreferences/raw/main/final_data_summary.csv'
+  path = 'https://raw.githubusercontent.com/erinwall/songpreferences/erinwall-patch-2/final_data_summary.csv'
   df = pd.read_csv(path)
 
-
+  # grouping by bird and date
   by_bird_by_date = df.groupby(['bird_ID', 'date'])['bird_played'].apply(list).reset_index()
+  by_bird_by_date.to_csv('by_bird_by_date.csv')
+ 
+  # making lists of tests for each day / bird 
+  by_bird_by_date = make_test_lists(by_bird_by_date)
+  by_bird_by_date.to_csv('test_lists.csv')
+  
+  # making table of test counts 
+  final_table_passing = make_testcounts_table(by_bird_by_date, df) # this function takes the output of make_test_lists and the original data
+  final_table_passing.to_csv('finaltable_passing.csv')
+
+
+
+
+  '''
+  path = 'https://github.com/erinwall/songpreferences/raw/main/final_notpassing_summary.csv'
+  df2 = pd.read_csv(path)
+
+
+  by_bird_by_date = df2.groupby(['bird_ID', 'date'])['bird_played'].apply(list).reset_index()
 
   print(by_bird_by_date)
   by_bird_by_date = make_test_lists(by_bird_by_date)
   print(by_bird_by_date)
-  final_table = make_testcounts_table(by_bird_by_date, df) # this function takes the output of make_test_lists and the original data
-  print(final_table)
-  final_table.to_csv('finaltable?.csv')
+  final_table_not_passing = make_testcounts_table(by_bird_by_date, df2) # this function takes the output of make_test_lists and the original data
+ 
+  print(final_table_not_passing)
+  final_table_not_passing.to_csv('finaltable_notpassing.csv')
 
+  both = final_table_passing.merge(final_table_not_passing, left_on='misfit', right_on='fam vs unfam')
+  both.to_csv('uhh.csv')
+  print(both)
+  '''
 
 
 # run main function 
