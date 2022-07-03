@@ -19,10 +19,8 @@ for date in SOME_DATES:
 			counter += 1
 		else:
 			counter = 0
-
-	print(counter)
+		if counter >= 4: 
+			possible_missed_passes = pd.concat([possible_missed_passes, subset], axis=0) # add this subset to passing 
 	# if there are more than four rows in this day that have more than 3 pulls, we should inspect to find false negatives 
-	if counter >= 4: 
-		possible_missed_passes = pd.concat([possible_missed_passes, subset], axis=0) # add this subset to passing 
-
+	
 possible_missed_passes.to_csv('possible_missed_passes.csv')
